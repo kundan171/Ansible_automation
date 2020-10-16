@@ -1,0 +1,13 @@
+---
+#prepare hosts with python and ssh-key-gen
+
+ - hosts: tomcat_servers
+   gather_facts: False
+   remote_user: ubuntu
+   become: yes
+   become_user: root
+   become_method: sudo 
+   
+   roles:
+   - Installpython
+   - sshkey

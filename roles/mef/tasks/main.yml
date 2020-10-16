@@ -1,0 +1,45 @@
+
+- name: 'ensure that the /tmp/mef directory exist'
+  become: true
+  file: path=/tmp/mef state=directory owner=root group=root mode=0755
+
+
+- name: 'ensure that the /tmp/mef/archive directory exist'
+  become: true
+  file: path=/tmp/mef/archive state=directory owner=root group=root mode=0755
+
+- name: 'Copy main executable for mef from sources to endpoints'
+  become: true
+  copy: 
+    src: files/iam_extract_global.pl
+    dest: /tmp/mef/
+    owner: root
+    group: root
+    mode: 0755
+
+- name: 'Remove any old mef output from /tmp folder to /tmp/mef/archive folder'
+  become: true
+  shell: "mv /tmp/*.mef3 /tmp/mef/archive"
+  ignore_errors: true
+
+- name: 'Execute the file with parameters and store the results in /tmp folder'
+  become: true
+  raw: perl /tmp/mef/iam_extract_global.pl
+
+- name: 'Find file generated from the execution of MEF'
+  shell: "find /tmp/*.mef3"
+  register: findresult
+
+- name: 'Checking the result'
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ findresult.stdout_lines }}"
+
+- name: 'Copy resule file from the endpoint to local machine'
+  become: true
+  fetch: 
+    src: "{{ item }}"
+    dest: RESULTS/
+  with_items: "{{ findresult.stdout_lines }}"
+
+

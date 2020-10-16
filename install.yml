@@ -1,0 +1,10 @@
+---
+#tomcat installation 
+
+- hosts: tomcat_servers
+  remote_user : root
+  become: yes
+  become_method: sudo
+  
+  roles:
+   - tomcat_install

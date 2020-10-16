@@ -1,0 +1,48 @@
+---
+- name: add tomcat group
+  group: name={{ install_group }}
+
+- name: add user "tomcat"
+  user: name={{ install_user }} group={{ install_group }} home={{ install_path }} createhome=yes
+  become: True
+  become_method: sudo
+  
+- name: copy files 
+  copy:
+    src: "{{ src_binary }}"
+    dest: "{{ install_path }}/{{ product_name }}"
+    owner: "{{ install_user }}"
+    group: "{{ install_group }}"
+- name: Install latest version of JDK"
+  apt:
+    name: "{{ java_JDK }}"
+    state: latest
+    install_recommends: no
+#  -debug: var=output.stdout_lines
+#- name: Extract binary 
+#  file:
+#    path:  "{{ install_path }}/apache-tomcat" 
+#    state: directory
+- name: unarchivee
+  unarchive:
+    src: "{{ install_path }}/{{product_name }}"
+    dest: "{{ install_path }}"
+    remote_src: yes
+
+- name: Change ownership of Tomcat installation
+  file: path={{ install_path }} owner=tomcat group=tomcat state=directory recurse=yes
+
+#- name: Configure Tomcat server
+#  template: src=server.xml dest=/usr/share/tomcat/conf/
+#  notify: restart tomcat
+
+#- name: Configure Tomcat users
+#  template: src=tomcat-users.xml dest=/usr/share/tomcat/conf/
+#  notify: restart tomcat
+
+- name: Install Tomcat init script
+  copy: src=tomcat_conf.sh dest=/etc/init.d/tomcat mode=0755
+
+- name: Start Tomcat
+  service: name=tomcat state=started enabled=yes
+
